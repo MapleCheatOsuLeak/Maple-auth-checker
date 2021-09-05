@@ -38,26 +38,29 @@ namespace osu_auth_checker
         {
             while (true)
             {
-                Console.WriteLine("Downloading data...");
-                string stable, beta, cuttingedge;
-                using (var wc = new System.Net.WebClient()) { 
-                    stable = wc.DownloadString("https://osu.ppy.sh/web/check-updates.php?action=check&stream=stable40");
-                    beta = wc.DownloadString("https://osu.ppy.sh/web/check-updates.php?action=check&stream=beta40");
-                    cuttingedge = wc.DownloadString("https://osu.ppy.sh/web/check-updates.php?action=check&stream=cuttingedge");
-                }
-
-                List<FileEntry> stableFiles = JsonConvert.DeserializeObject<List<FileEntry>>(stable);
-                List<FileEntry> betaFiles = JsonConvert.DeserializeObject<List<FileEntry>>(beta);
-                List<FileEntry> cuttingedgeFiles = JsonConvert.DeserializeObject<List<FileEntry>>(cuttingedge);
-
-                Console.WriteLine("Checking...");
-
-                string url = "https://maple.software/backend/osuauthhandler.php";
-                foreach (FileEntry file in stableFiles)
+                try
                 {
-                    if (file.filename == "osu!auth.dll")
+                    Console.WriteLine("Downloading data...");
+                    string stable, beta, cuttingedge;
+                    using (var wc = new System.Net.WebClient())
                     {
-                        var values = new Dictionary<string, string>
+                        stable = wc.DownloadString("https://osu.ppy.sh/web/check-updates.php?action=check&stream=stable40");
+                        beta = wc.DownloadString("https://osu.ppy.sh/web/check-updates.php?action=check&stream=beta40");
+                        cuttingedge = wc.DownloadString("https://osu.ppy.sh/web/check-updates.php?action=check&stream=cuttingedge");
+                    }
+
+                    List<FileEntry> stableFiles = JsonConvert.DeserializeObject<List<FileEntry>>(stable);
+                    List<FileEntry> betaFiles = JsonConvert.DeserializeObject<List<FileEntry>>(beta);
+                    List<FileEntry> cuttingedgeFiles = JsonConvert.DeserializeObject<List<FileEntry>>(cuttingedge);
+
+                    Console.WriteLine("Checking...");
+
+                    string url = "https://maple.software/backend/osuauthhandler.php";
+                    foreach (FileEntry file in stableFiles)
+                    {
+                        if (file.filename == "osu!auth.dll")
+                        {
+                            var values = new Dictionary<string, string>
                         {
                             { "h", file.file_hash },
                             { "b", "osu!stable" },
@@ -65,20 +68,20 @@ namespace osu_auth_checker
                             { "u", file.timestamp }
                         };
 
-                        var content = new FormUrlEncodedContent(values);
+                            var content = new FormUrlEncodedContent(values);
 
-                        var response = await client.PostAsync(url, content);
+                            var response = await client.PostAsync(url, content);
 
-                        var responseString = await response.Content.ReadAsStringAsync();
-                        Console.WriteLine($"Response: {responseString}");
+                            var responseString = await response.Content.ReadAsStringAsync();
+                            Console.WriteLine($"Response: {responseString}");
+                        }
                     }
-                }
 
-                foreach (FileEntry file in betaFiles)
-                {
-                    if (file.filename == "osu!auth.dll")
+                    foreach (FileEntry file in betaFiles)
                     {
-                        var values = new Dictionary<string, string>
+                        if (file.filename == "osu!auth.dll")
+                        {
+                            var values = new Dictionary<string, string>
                         {
                             { "h", file.file_hash },
                             { "b", "osu!beta" },
@@ -86,20 +89,20 @@ namespace osu_auth_checker
                             { "u", file.timestamp }
                         };
 
-                        var content = new FormUrlEncodedContent(values);
+                            var content = new FormUrlEncodedContent(values);
 
-                        var response = await client.PostAsync(url, content);
+                            var response = await client.PostAsync(url, content);
 
-                        var responseString = await response.Content.ReadAsStringAsync();
-                        Console.WriteLine($"Response: {responseString}");
+                            var responseString = await response.Content.ReadAsStringAsync();
+                            Console.WriteLine($"Response: {responseString}");
+                        }
                     }
-                }
 
-                foreach (FileEntry file in cuttingedgeFiles)
-                {
-                    if (file.filename == "osu!auth.dll")
+                    foreach (FileEntry file in cuttingedgeFiles)
                     {
-                        var values = new Dictionary<string, string>
+                        if (file.filename == "osu!auth.dll")
+                        {
+                            var values = new Dictionary<string, string>
                         {
                             { "h", file.file_hash },
                             { "b", "osu!cuttingedge" },
@@ -107,20 +110,25 @@ namespace osu_auth_checker
                             { "u", file.timestamp }
                         };
 
-                        var content = new FormUrlEncodedContent(values);
+                            var content = new FormUrlEncodedContent(values);
 
-                        var response = await client.PostAsync(url, content);
+                            var response = await client.PostAsync(url, content);
 
-                        var responseString = await response.Content.ReadAsStringAsync();
-                        Console.WriteLine($"Response: {responseString}");
+                            var responseString = await response.Content.ReadAsStringAsync();
+                            Console.WriteLine($"Response: {responseString}");
+                        }
                     }
+
+                    Console.WriteLine("Check complete!");
+                    stable = ""; beta = ""; cuttingedge = "";
+                    stableFiles.Clear(); betaFiles.Clear(); cuttingedgeFiles.Clear();
+
+                    Thread.Sleep(120000); // every two minutes
                 }
-
-                Console.WriteLine("Check complete!");
-                stable = ""; beta = ""; cuttingedge = "";
-                stableFiles.Clear(); betaFiles.Clear(); cuttingedgeFiles.Clear();
-
-                Thread.Sleep(120000); // every two minutes
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
             }
         }
     }
